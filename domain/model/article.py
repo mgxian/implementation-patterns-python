@@ -55,3 +55,7 @@ class ArticleRepository(metaclass=ABCMeta):
     @abstractmethod
     def save(self, article: Article) -> Article:
         pass
+
+    @abstractmethod
+    def exists_by_slug(self, slug) -> bool:
+        pass

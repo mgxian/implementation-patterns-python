@@ -1,8 +1,9 @@
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from domain.impl.db.article_repository import ArticleRepositoryDB
-from domain.service.article import ArticleService
+from domain.service.article import ArticleService, ArticleExistedException
 from provider.system_clock import SystemClock
 
 router = APIRouter()
@@ -31,7 +32,11 @@ class ArticleResponse(BaseModel):
 
 @router.post("/articles", status_code=status.HTTP_201_CREATED, response_model=ArticleResponse)
 def create_article(request: ArticleCreateRequest):
-    article = article_service.create_article(request.title, request.description, request.body, request.author_id)
+    try:
+        article = article_service.create_article(request.title, request.description, request.body, request.author_id)
+    except ArticleExistedException as e:
+        return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"message": str(e)})
+
     response = {
         "slug": article.slug,
         "title": article.title,
